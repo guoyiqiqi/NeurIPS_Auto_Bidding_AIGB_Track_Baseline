@@ -16,11 +16,7 @@ class EpisodeReplayBuffer(Dataset):
 
         self.state_dim = state_dim
         self.act_dim = act_dim
-        df_chunk = pd.read_csv(data_path, chunksize=1000)
-        res_chunk = []
-        for chunk in df_chunk:
-            res_chunk.append(chunk)
-        training_data = pd.concat(res_chunk)
+        training_data = pd.read_csv(data_path)
 
         def safe_literal_eval(val):
             if pd.isna(val):

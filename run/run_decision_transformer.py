@@ -21,29 +21,35 @@ def run_dt():
 def train_model():
     state_dim = 16
 
-    replay_buffer = EpisodeReplayBuffer(16, 1, "./data/trajectory_data.csv")
+    replay_buffer = EpisodeReplayBuffer(16, 1, "../data/trajectory/trajectory_data.csv")
     save_normalize_dict({"state_mean": replay_buffer.state_mean, "state_std": replay_buffer.state_std},
                         "saved_model/DTtest")
     logger.info(f"Replay buffer size: {len(replay_buffer.trajectories)}")
 
     model = DecisionTransformer(state_dim=state_dim, act_dim=1, state_mean=replay_buffer.state_mean,
                                 state_std=replay_buffer.state_std)
-    step_num = 10000
-    batch_size = 32
+    step_num = 100
+    batch_size = 2048
     sampler = WeightedRandomSampler(replay_buffer.p_sample, num_samples=step_num * batch_size, replacement=True)
-    dataloader = DataLoader(replay_buffer, sampler=sampler, batch_size=batch_size)
+    dataloader = DataLoader(replay_buffer, sampler=sampler, batch_size=batch_size, num_workers = 4)
 
     model.train()
-    i = 0
-    for states, actions, rewards, dones, rtg, timesteps, attention_mask in dataloader:
-        train_loss = model.step(states, actions, rewards, dones, rtg, timesteps, attention_mask)
-        i += 1
-        logger.info(f"Step: {i} Action loss: {np.mean(train_loss)}")
-        model.scheduler.step()
 
-    model.save_net("saved_model/DTtest")
-    test_state = np.ones(state_dim, dtype=np.float32)
-    logger.info(f"Test action: {model.take_actions(test_state)}")
+    for epoch in range(1,500):
+        i = 0
+        epoch_loss = 0
+        for states, actions, rewards, dones, rtg, timesteps, attention_mask in dataloader:
+            train_loss = model.step(states, actions, rewards, dones, rtg, timesteps, attention_mask)
+            epoch_loss += np.mean(train_loss)
+            i += 1
+            #logger.info(f"Eopch: {epoch} Step: {i} Action loss: {np.mean(train_loss)}")
+            model.scheduler.step()
+        logger.info(f"Eopch: {epoch} Action loss: {epoch_loss/i}")
+        model.save_net(f"../saved_model/DTtest_{epoch}")
+
+    logger.info(f"Train success!")
+    #test_state = np.ones(state_dim, dtype=np.float32)
+    #logger.info(f"Test action: {model.take_actions(test_state)}")
 
 
 def load_model():

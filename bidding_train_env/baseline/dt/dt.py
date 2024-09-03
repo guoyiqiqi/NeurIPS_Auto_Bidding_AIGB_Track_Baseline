@@ -70,7 +70,8 @@ class DecisionTransformer(nn.Module):
     def __init__(self, state_dim, act_dim, state_mean, state_std, action_tanh=False, K=10, max_ep_len=96, scale=2000,
                  target_return=4):
         super(DecisionTransformer, self).__init__()
-        self.device = "gpu"
+        #self.device = "cpu"
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
         self.length_times = 3
         self.hidden_size = 64
@@ -122,13 +123,22 @@ class DecisionTransformer(nn.Module):
                                                            lambda steps: min((steps + 1) / self.warmup_steps, 1))
 
         self.init_eval()
+        self.to(self.device)
 
     def forward(self, states, actions, rewards, returns_to_go, timesteps, attention_mask=None):
+
+        states = states.to(self.device)
+        actions = actions.to(self.device)
+        rewards = rewards.to(self.device)
+        returns_to_go = returns_to_go.to(self.device)
+        timesteps = timesteps.to(self.device)
+
 
         batch_size, seq_length = states.shape[0], states.shape[1]
 
         if attention_mask is None:
             attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long)
+        attention_mask = attention_mask.to(self.device)
 
         state_embeddings = self.embed_state(states)
         action_embeddings = self.embed_action(actions)
@@ -163,11 +173,19 @@ class DecisionTransformer(nn.Module):
 
     def get_action(self, states, actions, rewards, returns_to_go, timesteps, **kwargs):
         # we don't care about the past rewards in this model
+
+        #states = states.to(self.device)
+        #actions = actions.to(self.device)
+        #rewards = rewards.to(self.device)
+        #returns_to_go = returns_to_go.to(self.device)
+        #timesteps = timesteps.to(self.device)
+
         states = states.reshape(1, -1, self.state_dim)
         actions = actions.reshape(1, -1, self.act_dim)
         returns_to_go = returns_to_go.reshape(1, -1, 1)
         rewards = rewards.reshape(1, -1, 1)
         timesteps = timesteps.reshape(1, -1)
+
 
         if self.max_length is not None:
             states = states[:, -self.max_length:]
@@ -207,6 +225,14 @@ class DecisionTransformer(nn.Module):
         return action_preds[0, -1]
 
     def step(self, states, actions, rewards, dones, rtg, timesteps, attention_mask):
+
+        states = states.to(self.device)
+        actions = actions.to(self.device)
+        dones = dones.to(self.device)
+        rtg = rtg.to(self.device)
+        timesteps = timesteps.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+
         rewards_target, action_target, rtg_target = torch.clone(rewards), torch.clone(actions), torch.clone(rtg)
 
         state_preds, action_preds, return_preds, reward_preds = self.forward(
@@ -216,6 +242,8 @@ class DecisionTransformer(nn.Module):
         act_dim = action_preds.shape[2]
         action_preds = action_preds.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
         action_target = action_target.reshape(-1, act_dim)[attention_mask.reshape(-1) > 0]
+        action_target = action_target.to(self.device)
+        action_preds = action_preds.to(self.device) 
 
         loss = torch.mean((action_preds - action_target) ** 2)
 
