@@ -21,7 +21,7 @@ def run_dt():
 def train_model():
     state_dim = 16
 
-    replay_buffer = EpisodeReplayBuffer(16, 1, "../data/trajectory/trajectory_data.csv")
+    replay_buffer = EpisodeReplayBuffer(16, 1, "../data/trajectory_data.csv")
     save_normalize_dict({"state_mean": replay_buffer.state_mean, "state_std": replay_buffer.state_std},
                         "saved_model/DTtest")
     logger.info(f"Replay buffer size: {len(replay_buffer.trajectories)}")
@@ -35,7 +35,7 @@ def train_model():
 
     model.train()
 
-    for epoch in range(1,500):
+    for epoch in range(1,100):
         i = 0
         epoch_loss = 0
         for states, actions, rewards, dones, rtg, timesteps, attention_mask in dataloader:
