@@ -7,7 +7,7 @@ import psutil
 from bidding_train_env.baseline.dt.dt import DecisionTransformer
 from bidding_train_env.strategy.base_bidding_strategy import BaseBiddingStrategy
 import torch
-import 
+import pickle
 
 
 class DtBiddingStrategy(BaseBiddingStrategy):
@@ -22,10 +22,10 @@ class DtBiddingStrategy(BaseBiddingStrategy):
         dir_name = os.path.dirname(file_name)
         dir_name = os.path.dirname(dir_name)
         model_path = os.path.join(dir_name, "saved_model", "DTtest", "dt.pt")
-        picklePath = os.path.join(dir_name, "saved_model", "DTtest", "normalize_dict.pkl")
+        Path = os.path.join(dir_name, "saved_model", "DTtest", "normalize_dict.pkl")
 
-        with open(picklePath, 'rb') as f:
-            normalize_dict = pickle.load(f)
+        with open(Path, 'rb') as f:
+            normalize_dict = .load(f)
         self.model = DecisionTransformer(state_dim=16, act_dim=1, state_mean=normalize_dict["state_mean"],
                                          state_std=normalize_dict["state_std"])
         self.model.load_net(model_path)
