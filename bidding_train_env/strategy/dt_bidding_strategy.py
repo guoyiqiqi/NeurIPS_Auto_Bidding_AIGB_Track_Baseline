@@ -7,7 +7,7 @@ import psutil
 from bidding_train_env.baseline.dt.dt import DecisionTransformer
 from bidding_train_env.strategy.base_bidding_strategy import BaseBiddingStrategy
 import torch
-import 
+import pickle
 
 
 class DtBiddingStrategy(BaseBiddingStrategy):
