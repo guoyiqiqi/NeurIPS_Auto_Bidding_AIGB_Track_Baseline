@@ -1,11 +1,13 @@
 import time
+import gin
 import numpy as np
 import os
 import psutil
-
+# from saved_model.DTtest.dt import DecisionTransformer
+from bidding_train_env.baseline.dt.dt import DecisionTransformer
 from bidding_train_env.strategy.base_bidding_strategy import BaseBiddingStrategy
-from bidding_train_env.strategy.dt_bidding_strategy import DtBiddingStrategy 
-
+import torch
+import pickle
 
 class PlayerBiddingStrategy(DtBiddingStrategy):
     """

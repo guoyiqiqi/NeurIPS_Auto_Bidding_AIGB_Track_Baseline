@@ -1,3 +1,3 @@
-docker build -t registry.cn-beijing.aliyuncs.com/nips_train_env_yq/train_env:yq_test3 -f ./Dockerfile .
-docker push registry.cn-beijing.aliyuncs.com/nips_train_env_yq/train_env:yq_test3
+docker build -t registry.cn-beijing.aliyuncs.com/nips_train_env_yq/train_env:yq_test4 -f ./Dockerfile .
+docker push registry.cn-beijing.aliyuncs.com/nips_train_env_yq/train_env:yq_test4
 
